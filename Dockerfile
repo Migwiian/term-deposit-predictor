@@ -17,4 +17,5 @@ COPY model.bin predict.py ./
 EXPOSE 8000
 
 # 7. default command = start uvicorn
-CMD ["sh", "-c", "python -c 'import predict, sys, traceback; print(predict)' 2>&1 || traceback.print_exc(); exec uvicorn predict:app --host 0.0.0.0 --port 8000"]
+# last line in Dockerfile
+CMD ["sh", "-c", "uvicorn predict:app --host 0.0.0.0 --port 8000 2>&1 | tee /dev/stderr"]
