@@ -5,6 +5,7 @@ FROM python:3.12-slim
 WORKDIR /app
 
 # 3. copy dependency list first (Docker layer caching)
+ENV REFRESH=2
 COPY requirements.txt .
 
 # 4. install deps
