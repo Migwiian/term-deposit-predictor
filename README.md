@@ -30,6 +30,7 @@ This project focuses on predicting whether a bank client will subscribe to a ter
 curl -X POST [https://term-deposit-predictor.onrender.com/predict](https://term-deposit-predictor.onrender.com/predict) \
   -H "Content-Type: application/json" \
   -d '{"age":42,"job":"admin.","default":"no","housing":"yes","loan":"no","marital":"married","education":"university.degree"}'
+```
 
 ### Stack
 
