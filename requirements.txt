@@ -1,0 +1,11 @@
+annotated-doc==0.0.4
+annotated-types==0.7.0
+click==8.3.1
+fastapi==0.121.3
+pip==25.1.1
+pydantic==2.12.4
+pydantic-core==2.41.5
+starlette==0.50.0
+typing-inspection==0.4.2
+uv==0.9.11
+uvicorn==0.38.0
