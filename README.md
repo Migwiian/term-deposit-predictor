@@ -15,23 +15,23 @@ An end-to-end ML product that turns the UCI Bank Marketing dataset into a workin
 ```bash
 curl -X POST https://term-deposit-predictor.onrender.com/predict \
   -H "Content-Type: application/json" \
-  -d '{"age":42,"job":"admin.","default":"no","housing":"yes","loan":"no","marital":"married","education":"university.degree"}'
+  -d '{"age":42,"job":"admin.","default":"no","housing":"yes","loan":"no","marital":"married","education":"university.degree"}```
 Returns:  
 ```json
-{"subscribe_probability":0.21,"subscribe":false}
+{"subscribe_probability":0.21,"subscribe":false}```
 
 ### Retrain yourself 
-git clone https://github.com/Migwiian/term-deposit-predictor 
-cd term-deposit-predictor
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-python train.py               # produces model.bin
-uvicorn predict:app --reload  # local API on :8000
+- git clone https://github.com/Migwiian/term-deposit-predictor 
+- cd term-deposit-predictor
+- python -m venv .venv && source .venv/bin/activate
+- pip install -r requirements.txt
+- python train.py               # produces model.bin
+- uvicorn predict:app --reload  # local API on :8000
 
 ### Stack
-Stack
-Python 3.12
-scikit-learn 1.5.0
-FastAPI 0.111.0 / Uvicorn 0.30.3
-Streamlit 1.40.0 (front-end)
-Render (API) + Streamlit Cloud (UI)
+- Stack
+- Python 3.12
+- scikit-learn 1.5.0
+- FastAPI 0.111.0 / Uvicorn 0.30.3
+- Streamlit 1.40.0 (front-end)
+- Render (API) + Streamlit Cloud (UI)
