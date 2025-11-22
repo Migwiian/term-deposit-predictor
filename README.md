@@ -1,4 +1,3 @@
-# bank-deposit-api
 # bank-deposit-api 🏦
 
 Live API (when deployed): `https://your-app.fly.dev/docs`
