@@ -27,3 +27,11 @@ python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 python train.py               # produces model.bin
 uvicorn predict:app --reload  # local API on :8000
+
+### Stack
+Stack
+Python 3.12
+scikit-learn 1.5.0
+FastAPI 0.111.0 / Uvicorn 0.30.3
+Streamlit 1.40.0 (front-end)
+Render (API) + Streamlit Cloud (UI)
