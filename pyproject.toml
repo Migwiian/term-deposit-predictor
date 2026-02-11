@@ -1,0 +1,20 @@
+[project]
+name = "term-deposit-predictor"
+version = "0.1.0"
+description = "End-to-end ML microservice for predicting bank term deposits."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi==0.111.0",
+  "uvicorn[standard]==0.30.3",
+  "pandas==2.2.2",
+  "joblib==1.4.2",
+  "scikit-learn==1.5.0",
+  "pydantic==2.7.4",
+]
+
+[project.optional-dependencies]
+ui = [
+  "streamlit==1.40.0",
+  "requests==2.32.3",
+]
