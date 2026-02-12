@@ -1,105 +1,157 @@
-# Term Deposit Predictor Microservice
+# Term Deposit Predictor
 
-An end-to-end Machine Learning product that successfully transforms the **UCI Bank Marketing dataset** into a working microservice, deployed and accessible via a live API and front-end interface.
+This project predicts whether a bank client will subscribe to a term deposit. It includes data prep, model training, an API for predictions, and a Streamlit UI. The goal is to show a clean junior level MLE workflow end to end.
 
----
+## Live links
 
-## Overview
+- API docs: https://term-deposit-predictor.onrender.com/docs
+- Streamlit app: https://term-deposit-predictor-streamlit.streamlit.app
 
-This project focuses on predicting whether a bank client will subscribe to a term deposit.
+## Quick summary for recruiters
 
-## Data Source
+- Built a full pipeline from raw data to a deployed API and UI
+- Used a simple baseline model and saved a decision threshold from hold out data
+- Added metrics and artifacts for review and reproducibility
 
-- UCI Bank Marketing dataset: https://archive.ics.uci.edu/dataset/222/bank+marketing
+## Problem statement
 
-| Component | Description |
-| :--- | :--- |
-| **Model Type** | 7-line **Logistic Model** |
-| **Performance (v1)** | **0.65 ROC-AUC** (Ready for initial deployment) |
-| **API** | Dockerised **FastAPI** service (Supports `curl` and other HTTP requests) |
-| **Front-End** | **Streamlit** UI for non-coders |
+A bank wants to predict who will subscribe to a term deposit. The model helps decide who to contact and who to skip, based on the predicted probability of subscription.
 
----
+## Data
 
-## Live Deployments
+Source: UCI Bank Marketing dataset
+https://archive.ics.uci.edu/dataset/222/bank+marketing
 
-| Service | URL |
-| :--- | :--- |
-| **Live API (Docs)** | https://term-deposit-predictor.onrender.com/docs |
-| **Live UI** | https://term-deposit-predictor-streamlit.streamlit.app |
+Target: `y` where `yes` means the client subscribed.
 
----
-## Local Setup (uv)
+Features used:
+
+- age
+- job
+- default
+- housing
+- loan
+- marital
+- education
+
+## Approach
+
+1. Clean and standardize the selected fields
+2. Train a baseline logistic regression model
+3. Use a hold out set to pick a decision threshold based on F1 for the positive class
+4. Save the model, threshold, and metrics to a single file
+5. Serve predictions through a FastAPI service
+6. Provide a Streamlit UI that calls the API
+
+## System flow
+
+```text
+raw data
+  -> data prep
+  -> train.py
+  -> model.bin (model + threshold + metrics)
+  -> predict.py (FastAPI)
+  -> Streamlit UI
+```
+
+
+## Model metrics from latest run
+
+These metrics are from the most recent local training run.
+
+- ROC AUC: 0.6643
+- F1: 0.2960
+- Precision: 0.2103
+- Recall: 0.5000
+- Decision threshold: 0.5601
+
+## Project structure
+
+- `train.py` trains the model and writes `model.bin`
+- `predict.py` loads `model.bin` and serves the API
+- `app.py` is the Streamlit UI
+- `notebooks/` contains EDA and model comparison
+- `data/` contains raw and cleaned data
+- `model.bin` stores the model, threshold, and metrics
+
+## Local setup
 
 Create and sync the environment:
+
 ```bash
 uv venv
 uv sync
 ```
 
-For the Streamlit UI dependencies:
+For Streamlit UI dependencies:
+
 ```bash
 uv sync --extra ui
 ```
 
-Run training:
+## Train the model
+
 ```bash
 uv run python train.py
 ```
 
-Run API:
+This writes `model.bin` in the project root.
+
+## Run the API
+
 ```bash
-uv run uvicorn predict:app --reload --host 0.0.0.0 --port 8000
+uv run uvicorn predict:app --host 0.0.0.0 --port 8000
 ```
 
-Run Streamlit (local API):
-```bash
-API_URL=http://localhost:8000/predict uv run streamlit run app.py
-```
+Test with curl:
 
----
-### Quick Test
 ```bash
-curl -X POST [https://term-deposit-predictor.onrender.com/predict](https://term-deposit-predictor.onrender.com/predict) \
+curl -X POST http://localhost:8000/predict \
   -H "Content-Type: application/json" \
   -d '{"age":42,"job":"admin.","default":"no","housing":"yes","loan":"no","marital":"married","education":"university.degree"}'
 ```
 
-### Stack
+## Run the Streamlit UI
 
-* **Language:** Python 3.12
-* **ML Library:** scikit-learn 1.5.0
-* **API Framework:** FastAPI 0.111.0 / Uvicorn 0.30.3
-* **Front-End:** Streamlit 1.40.0
-* **Deployment:** Render (API) + Streamlit Cloud (UI)
+```bash
+API_URL=http://localhost:8000/predict uv run streamlit run app.py
+```
 
----
-## EDA Improvements (v2)
+The UI includes a health check and a Details panel with the saved threshold and metrics.
 
-EDA is split into:
+## What to look at
 
-- `notebooks/01_eda.ipynb`: baseline exploration of the full raw dataset.
-- `notebooks/02_eda.ipynb`: decision-driven EDA for preprocessing and validation choices.
+- EDA notebooks in `notebooks/`
+- Cleaned dataset at `data/bank-clean.csv`
+- Model artifact at `model.bin`
+- API and UI for end to end flow
 
-### What improved
+## Notes for reviewers
 
-- Target health is explicitly measured:
-  - Class balance: `88.3% no` vs `11.7% yes`
-  - Majority-class baseline accuracy: `0.883`
-- Unknown-value audit added by feature:
-  - `education` has the highest unknown rate (`~4.1%`)
-  - `job` has a smaller unknown rate (`~0.64%`)
-- Age signal analysis added:
-  - Older segments, especially `65+`, show stronger positive response rates
-- Split diagnostics added:
-  - Train/test target rates remain aligned (`~11.7%`)
-  - No unseen category values in test for selected categorical features
-- Duplicate interpretation corrected:
-  - Full raw dataset has `0` exact duplicates across all columns
-  - High duplicate counts observed earlier came from repeated profiles in a reduced feature subset, not from duplicate raw rows
+- The data split is stratified by the target
+- The model uses class weights for imbalance
+- Metrics are saved in `model.bin` for quick inspection
+- The Streamlit app calls the API and does not load the model directly
 
-### Artifacts generated
 
+## Docker build note
+
+The Docker image trains the model during the build, using the data in `data/`. This avoids committing `model.bin` to git and keeps the Render build simple.
+
+## Tools and versions
+
+- Python 3.12
+- scikit learn 1.5.0
+- FastAPI 0.111.0
+- Streamlit 1.40.0
+- Render and Streamlit Cloud for deployment
+
+## EDA artifacts
+
+- `notebooks/01_eda.ipynb`
+- `notebooks/02_eda.ipynb`
+- `notebooks/03_prep_and_model_compare.ipynb`
 - `notebooks/artifacts/02_eda_decisions.csv`
 - `notebooks/artifacts/02_eda_unknown_rates.csv`
 - `notebooks/artifacts/02_eda_split_coverage.csv`
+- `notebooks/artifacts/03_model_compare_cv.csv`

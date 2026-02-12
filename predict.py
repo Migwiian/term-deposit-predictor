@@ -8,7 +8,13 @@ import pandas as pd
 # 1. load pipeline once at start-up
 BASE_DIR = Path(__file__).resolve().parent
 MODEL_PATH = BASE_DIR / "model.bin"
-model = joblib.load(MODEL_PATH)
+bundle = joblib.load(MODEL_PATH)
+if isinstance(bundle, dict) and "model" in bundle:
+    model = bundle["model"]
+    threshold = float(bundle.get("threshold", 0.5))
+else:
+    model = bundle
+    threshold = 0.5
 
 # 2. describe EXACTLY the fields the model expects
 class Client(BaseModel):
@@ -32,7 +38,7 @@ def predict(client: Client):
     proba = model.predict_proba(df.to_dict(orient="records"))[0, 1]
     return PredictionOut(
         subscribe_probability=proba,
-        subscribe=proba >= 0.5   # you can tune this threshold later
+        subscribe=proba >= threshold
     )
 
 @app.get("/ping")

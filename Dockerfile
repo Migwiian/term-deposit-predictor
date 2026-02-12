@@ -1,22 +1,18 @@
-# 1. docker build -t bank-deposit-api# 1. light-weight Python 3.12 image
+# syntax=docker/dockerfile:1
 FROM python:3.12-slim
 
-# 2. set working folder inside container
 WORKDIR /app
 
-# 3. copy dependency list first (Docker layer caching)
-ENV REFRESH=2
-COPY requirements.txt .
+# Install uv from the official image and use lockfile-based sync.
+COPY --from=ghcr.io/astral-sh/uv:0.9.26 /uv /uvx /bin/
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev --no-install-project
 
-# 4. install deps
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy training code and data, then train inside the image
+COPY train.py predict.py ./
+COPY data ./data
+RUN uv run python train.py
 
-# 5. copy model + service code
-COPY model.bin predict.py ./
-
-# 6. expose port (standard for FastAPI)
 EXPOSE 8000
 
-# 7. default command = start uvicorn
-# last line in Dockerfile
-CMD ["sh", "-c", "uvicorn predict:app --host 0.0.0.0 --port 8000 2>&1 | tee /dev/stderr"]
+CMD ["uv", "run", "uvicorn", "predict:app", "--host", "0.0.0.0", "--port", "8000"]

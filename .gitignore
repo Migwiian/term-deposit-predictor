@@ -1,5 +1,10 @@
 term-depo.venv/
 .venv/
+venv/
+venv.bak/
+.venv.bak2/
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
+model.bin
+notebooks/artifacts/
