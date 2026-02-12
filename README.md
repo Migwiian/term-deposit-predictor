@@ -7,7 +7,7 @@ This project predicts whether a bank client will subscribe to a term deposit. It
 - API docs: https://term-deposit-predictor.onrender.com/docs
 - Streamlit app: https://term-deposit-predictor-streamlit.streamlit.app
 
-## Quick summary for recruiters
+## Quick summary
 
 - Built a full pipeline from raw data to a deployed API and UI
 - Used a simple baseline model and saved a decision threshold from hold out data
@@ -126,7 +126,7 @@ The UI includes a health check and a Details panel with the saved threshold and 
 - Model artifact at `model.bin`
 - API and UI for end to end flow
 
-## Notes for reviewers
+## Notes
 
 - The data split is stratified by the target
 - The model uses class weights for imbalance
