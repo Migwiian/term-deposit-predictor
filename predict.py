@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
+from typing import Optional
 import joblib
 import pandas as pd
 import logging
@@ -33,16 +34,16 @@ class Client(BaseModel):
     marital    : str
     education  : str
     default    : str
-    balance    : float
+    balance    : Optional[float] = None
     housing    : str
     loan       : str
-    contact    : str
-    day        : int
-    month      : str
-    campaign   : int
-    pdays      : int
-    previous   : int
-    poutcome   : str
+    contact    : Optional[str] = None
+    day        : Optional[int] = None
+    month      : Optional[str] = None
+    campaign   : Optional[int] = None
+    pdays      : Optional[int] = None
+    previous   : Optional[int] = None
+    poutcome   : Optional[str] = None
 
 class PredictionOut(BaseModel):
     subscribe_probability: float
