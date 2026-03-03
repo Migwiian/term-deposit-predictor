@@ -9,7 +9,7 @@ COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project
 
 # Copy training code and data, then train inside the image
-COPY train.py predict.py ./
+COPY train.py predict.py features.py ./
 COPY data ./data
 RUN uv run python train.py
 

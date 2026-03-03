@@ -24,8 +24,8 @@ def load_model_info():
 
 st.set_page_config(page_title="Term-Deposit Predictor", layout="centered")
 
-st.title("🏦 Will this client subscribe a term deposit?")
-st.markdown("Adjust the sliders / drop-downs and click **Predict**.")
+st.title("🏦 Should we contact this client for a term deposit?")
+st.markdown("Fill the pre-contact features and click **Predict**.")
 st.caption("Decision uses a learned threshold from model training.")
 
 try:
@@ -48,26 +48,43 @@ with st.expander("Details", expanded=False):
         st.write("Metrics not found in model.bin")
 
 # ---- inputs ----
-col1, col2 = st.columns(2)
+col1, col2, col3 = st.columns(3)
 with col1:
     age = st.slider("Age", 18, 100, 42)
     job = st.selectbox("Job", ["admin.","blue-collar","technician","services","management","retired","student","unemployed","housemaid","entrepreneur","self-employed","unknown"])
-    default = st.radio("Default", ["no","yes","unknown"], horizontal=True)
-    housing = st.radio("Housing loan", ["yes","no","unknown"], horizontal=True)
-with col2:
-    loan = st.radio("Personal loan", ["yes","no","unknown"], horizontal=True)
     marital = st.selectbox("Marital", ["married","single","divorced","unknown"])
-    education = st.selectbox("Education", ["basic.4y","basic.6y","basic.9y","high.school","illiterate","professional.course","university.degree","unknown"])
+    education = st.selectbox("Education", ["primary","secondary","tertiary","unknown"])
+    default = st.radio("Default", ["no","yes","unknown"], horizontal=True)
+with col2:
+    balance = st.number_input("Balance", value=0.0, step=100.0)
+    housing = st.radio("Housing loan", ["yes","no","unknown"], horizontal=True)
+    loan = st.radio("Personal loan", ["yes","no","unknown"], horizontal=True)
+    contact = st.selectbox("Contact type", ["cellular","telephone","unknown"])
+    month = st.selectbox("Month", ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"])
+with col3:
+    day = st.slider("Day of month", 1, 31, 15)
+    campaign = st.number_input("Campaign contacts", value=1, step=1, min_value=0)
+    pdays = st.number_input("Days since last contact", value=-1, step=1)
+    previous = st.number_input("Previous contacts", value=0, step=1, min_value=0)
+    poutcome = st.selectbox("Previous outcome", ["success","failure","other","unknown"])
 
 if st.button("Predict", type="primary"):
     payload = {
         "age": age,
         "job": job,
+        "marital": marital,
+        "education": education,
         "default": default,
+        "balance": balance,
         "housing": housing,
         "loan": loan,
-        "marital": marital,
-        "education": education
+        "contact": contact,
+        "day": day,
+        "month": month,
+        "campaign": campaign,
+        "pdays": pdays,
+        "previous": previous,
+        "poutcome": poutcome,
     }
     try:
         res = requests.post(API_URL, json=payload, timeout=10)

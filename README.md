@@ -1,6 +1,6 @@
 # Term Deposit Predictor
 
-This project predicts whether a bank client will subscribe to a term deposit. It includes data prep, model training, an API for predictions, and a Streamlit UI. The goal is to show a clean junior level MLE workflow end to end.
+This project predicts whether a bank client will subscribe to a term deposit. It includes data prep, model training, an API for predictions, and a Streamlit UI.
 
 ## Live links
 
@@ -9,13 +9,13 @@ This project predicts whether a bank client will subscribe to a term deposit. It
 
 ## Quick summary
 
-- Built a full pipeline from raw data to a deployed API and UI
-- Used a simple baseline model and saved a decision threshold from hold out data
-- Added metrics and artifacts for review and reproducibility
+- Full pipeline from raw data to a deployed API and UI
+- Baseline model with a learned decision threshold
+- Metrics and artifacts saved for review and reproducibility
 
 ## Problem statement
 
-A bank wants to predict who will subscribe to a term deposit. The model helps decide who to contact and who to skip, based on the predicted probability of subscription.
+A bank wants to decide who to contact before a campaign. The model estimates the probability of subscription and supports a contact vs skip decision.
 
 ## Data
 
@@ -24,22 +24,33 @@ https://archive.ics.uci.edu/dataset/222/bank+marketing
 
 Target: `y` where `yes` means the client subscribed.
 
-Features used:
+Pre-contact features used (from `bank-full.csv`):
 
 - age
 - job
-- default
-- housing
-- loan
 - marital
 - education
+- default
+- balance
+- housing
+- loan
+- contact
+- day
+- month
+- campaign
+- pdays
+- previous
+- poutcome
+
+Excluded feature:
+- duration (post-contact; not available at decision time)
 
 ## Approach
 
-1. Clean and standardize the selected fields
+1. Clean and standardize the selected pre-contact fields
 2. Train a baseline logistic regression model
-3. Use a hold out set to pick a decision threshold based on F1 for the positive class
-4. Save the model, threshold, and metrics to a single file
+3. Use a validation set to pick a decision threshold (F1 by default, F-beta optional)
+4. Evaluate once on a test set and save metrics
 5. Serve predictions through a FastAPI service
 6. Provide a Streamlit UI that calls the API
 
@@ -55,15 +66,9 @@ raw data
 ```
 
 
-## Model metrics from latest run
+## Model metrics
 
-These metrics are from the most recent local training run.
-
-- ROC AUC: 0.6643
-- F1: 0.2960
-- Precision: 0.2103
-- Recall: 0.5000
-- Decision threshold: 0.5601
+Metrics are saved inside `model.bin` and exposed at `/health`. Run `uv run python train.py` to update them.
 
 ## Project structure
 
@@ -71,7 +76,7 @@ These metrics are from the most recent local training run.
 - `predict.py` loads `model.bin` and serves the API
 - `app.py` is the Streamlit UI
 - `notebooks/` contains EDA and model comparison
-- `data/` contains raw and cleaned data
+- `data/` contains raw data
 - `model.bin` stores the model, threshold, and metrics
 
 ## Local setup
@@ -108,8 +113,30 @@ Test with curl:
 ```bash
 curl -X POST http://localhost:8000/predict \
   -H "Content-Type: application/json" \
-  -d '{"age":42,"job":"admin.","default":"no","housing":"yes","loan":"no","marital":"married","education":"university.degree"}'
+  -d '{"age":42,"job":"admin.","marital":"married","education":"tertiary","default":"no","balance":1200,"housing":"yes","loan":"no","contact":"cellular","day":15,"month":"may","campaign":1,"pdays":-1,"previous":0,"poutcome":"unknown"}'
 ```
+
+Health check:
+
+```bash
+curl http://localhost:8000/health
+```
+
+## Configuration (env vars)
+
+- `MODEL_PATH` (train + API): override path to `model.bin`
+- `DATA_PATH` (train): override dataset CSV path
+- `MODEL_VERSION` (train): override model version string
+- `LOG_LEVEL` (API): set log level (default: `INFO`)
+- `THRESHOLD_STRATEGY` (train): `f1` or `fbeta` (recall-leaning)
+- `THRESHOLD_BETA` (train): beta value when `THRESHOLD_STRATEGY=fbeta` (default: `2.0`)
+
+## Model behavior and tradeoffs
+
+- The model supports a pre-contact decision: call vs skip.
+- To maximize subscribers, use a recall-leaning threshold.
+- Example: `THRESHOLD_STRATEGY=fbeta THRESHOLD_BETA=2.0 uv run python train.py`
+- Higher recall means more false positives.
 
 ## Run the Streamlit UI
 
@@ -122,7 +149,7 @@ The UI includes a health check and a Details panel with the saved threshold and 
 ## What to look at
 
 - EDA notebooks in `notebooks/`
-- Cleaned dataset at `data/bank-clean.csv`
+- Raw dataset at `data/bank-full.csv`
 - Model artifact at `model.bin`
 - API and UI for end to end flow
 
@@ -130,7 +157,7 @@ The UI includes a health check and a Details panel with the saved threshold and 
 
 - The data split is stratified by the target
 - The model uses class weights for imbalance
-- Metrics are saved in `model.bin` for quick inspection
+- Metrics (validation + test) are saved in `model.bin` for quick inspection
 - The Streamlit app calls the API and does not load the model directly
 
 
@@ -155,3 +182,10 @@ The Docker image trains the model during the build, using the data in `data/`. T
 - `notebooks/artifacts/02_eda_unknown_rates.csv`
 - `notebooks/artifacts/02_eda_split_coverage.csv`
 - `notebooks/artifacts/03_model_compare_cv.csv`
+
+## Production-grade additions
+
+- Input normalization with unknown-category fallback
+- Model metadata/versioning stored in `model.bin`
+- `/health` endpoint exposing model info
+- Basic tests for training and prediction
